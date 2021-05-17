@@ -670,6 +670,8 @@ set CHIPSET_RTL_IMPL_FILES [list \
     "${DV_ROOT}/design/chipset/vtheaplab_hacd/rtl/hacd_core.sv" \
     "${DV_ROOT}/design/chipset/vtheaplab_hacd/rtl/hacd.sv" \
     "${DV_ROOT}/design/chipset/vtheaplab_hacd/rtl/hacd_top.sv" \
+    "${DV_ROOT}/design/chipset/vtheaplab_hacd/rtl/hawk_struct_rw.sv" \
+    "${DV_ROOT}/design/chipset/vtheaplab_hacd/rtl/hawk_arbiter.sv" \
     "${DV_ROOT}/design/chipset/hawk_mc/rtl/hawk_mc_top.sv" \
     "${DV_ROOT}/design/chipset/mc/rtl/f1_mc_top.v" \
     "${DV_ROOT}/design/chipset/mc/rtl/noc_mig_bridge.v" \

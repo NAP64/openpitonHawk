@@ -40,25 +40,28 @@ module hacd #
 
 	output wire dump_mem
 );
+ assign infl_interrupt = 0;
+ assign defl_interrupt = 0;
+ assign hawk_reg_inactive_ctrl =  0;
 
-  //Local wires
-  wire [31:0] w_hacd_ctrl;
-  wire [31:0] w_l_wm;
-  wire hawk_reg_inactive_ctrl;
- //Generate Memory write trigger interrupt for now
- assign infl_interrupt = w_hacd_ctrl[0];
- assign defl_interrupt = w_hacd_ctrl[1];
- assign hawk_reg_inactive_ctrl =  w_hacd_ctrl[2];
+wire hawk_cmd_ready, hawk_cmd_run;
+HACD_AXI_WR_BUS reg_axi_wr_bus();
+HACD_AXI_RD_BUS reg_axi_rd_bus();
+wire use_axi;
+wire dump1, dump2;
+assign dump_mem = dump1 | dump2;
 
 hacd_regs hacd_regs (
   .rst_ni(cfg_rst_ni),
   .clk_i(cfg_clk_i),  
   .req_i,
   .resp_o,
-
-  //Reg Outputs
-  .low_watermark_q(w_l_wm),
-  .hacd_ctrl_q(w_hacd_ctrl)
+  .reg_axi_wr_bus,
+  .reg_axi_rd_bus,
+  .use_axi,
+  .hawk_cmd_ready,
+	.hawk_cmd_run,
+  .dump_mem(dump1)
 );
 
 hacd_core u_hacd_core (
@@ -71,10 +74,17 @@ hacd_core u_hacd_core (
   .cpu_axi_wr_bus,
   .cpu_axi_rd_bus,
 
+  .reg_axi_wr_bus,
+  .reg_axi_rd_bus,
+
   .mc_axi_wr_bus,
   .mc_axi_rd_bus,
 
-  .dump_mem
+  .hawk_cmd_ready,
+	.hawk_cmd_run,
+  .use_axi,
+
+  .dump_mem(dump2)
 );
 
 `ifdef HAWK_FPGA_DBG

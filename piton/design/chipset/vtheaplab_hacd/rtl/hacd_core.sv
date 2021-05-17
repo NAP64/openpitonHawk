@@ -23,12 +23,18 @@ module hacd_core (
     //hacd will observe these for request signals from cpu
     HACD_AXI_WR_BUS.slv cpu_axi_wr_bus, 
     HACD_AXI_RD_BUS.slv cpu_axi_rd_bus,  
+
+    HACD_AXI_WR_BUS.slv reg_axi_wr_bus, 
+    HACD_AXI_RD_BUS.slv reg_axi_rd_bus,  
     
     //HACD<->MC
     //hacd will act as request master on request singslas to mc 
     HACD_MC_AXI_WR_BUS.mstr mc_axi_wr_bus,  
     HACD_MC_AXI_RD_BUS.mstr mc_axi_rd_bus,
 
+	input wire hawk_cmd_ready,
+	output logic hawk_cmd_run,
+    input wire use_axi,
     output wire dump_mem 
     );
 
@@ -470,7 +476,9 @@ hawk_comdecomp u_hawk_comdecomp(
 	.hawk_cpu_ovrd_rdpkt,
 	.hawk_cpu_ovrd_wrpkt,
 	
-	.cu_state
+	.cu_state,
+   .hawk_cmd_ready,
+	.hawk_cmd_run
    );
 
    assign  init_att = cu_init_att & (!hawk_sw_ctrl[0]);   // || !hawk_reg_inactive_ctrl);
@@ -501,16 +509,20 @@ hawk_comdecomp u_hawk_comdecomp(
 	.mstr1_axi_wr_bus_slv(stall_axi_wr_bus.slv),
 	.mstr1_axi_rd_bus_slv(stall_axi_rd_bus.slv),
 
+   .mstr2_axi_wr_bus_slv(reg_axi_wr_bus), 
+   .mstr2_axi_rd_bus_slv(reg_axi_rd_bus),  
+
 	//.mstr1_axi_wr_bus_slv(cpu_axi_wr_bus),
 	//.mstr1_axi_rd_bus_slv(cpu_axi_rd_bus),
 
 	//Towards memory controller   
    	.out_axi_wr_bus(mc_axi_wr_bus),
-   	.out_axi_rd_bus(mc_axi_rd_bus)
+   	.out_axi_rd_bus(mc_axi_rd_bus),
+    .use_axi
    );
 
 
-`ifdef HAWK_FPGA //_DBG
+`ifdef HAWK_FPGA_NO //_DBG
 
 /*
 	//ILA debug

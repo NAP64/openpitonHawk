@@ -151,6 +151,23 @@ package hacd_pkg;
 	logic rlast;
  } axi_rd_resppkt_t;
 
+ 
+typedef struct packed {
+   logic [`HACD_AXI4_RESP_WIDTH - 1 :   0]  rresp;
+   logic [`HACD_AXI4_DATA_WIDTH - 1 :   0]  rdata;
+   logic                                    rvalid;
+   logic                                    rlast;
+   logic                                    arready;
+} axi_rd_resppkt2_t;
+
+typedef struct packed {
+   logic [1 :   0]  bresp;
+   logic            bvalid;
+   logic            awready;
+   logic            wready;
+} axi_wr_resppkt2_t;
+
+
  //packets for interaction between cu, rd and write managers
 
  typedef struct packed {
