@@ -23,52 +23,59 @@ module hawk_arbiter
     output logic [input_cnt-1 : 0] [Brsp - 1 : 0] input_rsp,
     output logic [Breq - 1 : 0] output_ins,
     input wire  [Brsp - 1 : 0] output_rsp,
-    input wire  output_done
+    input wire  output_done,
+
+    output reg [$clog2(input_cnt)-1 : 0] prev_served
 );
 
-logic p_state, n_state;
-logic [$clog2(input_cnt)-1 : 0] prev_served;
+logic state, state_n;
+logic [$clog2(input_cnt)-1 : 0] prev_served_n;
 
-initial begin
-    p_state <= 'd0;
-    n_state <= 'd0;
-    prev_served <= 'd0;
-end
-
-always @(posedge clk_i) begin
-    p_state <= n_state;
+always_comb begin
+    prev_served_n = prev_served;
+    if (|input_valid[input_cnt-1 : 0] && !state) begin
+        for (int i = 0; i < input_cnt; i++)
+            if (input_valid[(i + prev_served) % input_cnt]) begin
+                prev_served_n = ((i + prev_served) % input_cnt);
+                break;
+            end
+    end
 end
 
 always_comb begin
-    if (|input_valid[input_cnt-1 : 0] && p_state) begin
-        output_ins              = input_array[prev_served];
-        input_rsp[prev_served]  = output_rsp;
+    input_rsp    = 'd0;
+    if (|input_valid[input_cnt-1 : 0] && !state) begin
+        output_ins                  = input_array[prev_served_n];
+        input_rsp[prev_served_n]    = output_rsp;
     end
-    else
-        output_ins = '0;
+    else begin
+        output_ins                  = input_array[prev_served];
+        input_rsp[prev_served]      = output_rsp;
+    end
 end
 
-int i;
-
-always @* begin
-    n_state = p_state;
-    if (!p_state) begin
+always_comb begin
+    state_n = state;
+    if (!state) begin
         if (|input_valid[input_cnt-1 : 0]) begin
-            for (i = 0; i < input_cnt; i++) begin
-                if (input_valid[(i + prev_served) % input_cnt]) begin
-                    prev_served <= ((i + prev_served) % input_cnt);
-                    n_state <= 'd1;
-                    break;
-                end
-            end
+            state_n = 'd1;
         end
     end
     else begin
-        if (!input_valid[prev_served]) begin
-            n_state <= 'd0;
-            //input_rsp[prev_served] <= output_rsp;
-            //output_ins <= 'd0;
+        if (output_done) begin
+            state_n = 'd0;
         end
+    end
+end
+
+always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+        state       <= 'd0;
+        prev_served <= 'd0;
+    end
+    else begin
+        prev_served <= prev_served_n;
+        state <= state_n;
     end
 end
 

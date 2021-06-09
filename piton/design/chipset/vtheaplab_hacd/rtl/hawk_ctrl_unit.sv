@@ -94,7 +94,8 @@ begin
     n_hawk_cpu_ovrd_rdpkt.ppa=hawk_cpu_ovrd_rdpkt.ppa;//we need latch ppa till tbl update is done
     n_hawk_cpu_ovrd_wrpkt.allow_access=1'b0; //this woudl be asserted in diffrent states bsed on case
     n_hawk_cpu_ovrd_rdpkt.allow_access=1'b0; //this woudl be asserted in diffrent states bsed on case
-    
+    hawk_cmd_run ='d0;
+
     case(p_state)
         IDLE: begin
             if(init_att_done) begin //wait in same state till table initialiation is done
@@ -177,6 +178,7 @@ begin
                 //else if (infl)
         end
         HAWK_CMD: begin
+            hawk_cmd_run = 'd1;
             if (!hawk_cmd_ready) begin
                 hawk_cmd_run = 'd0;
                 n_state=CHK_RD_ACTIVE;
@@ -198,7 +200,6 @@ begin
         //output regs
         init_att<=1'b1; //init_att is enabled upon reset
         init_list<=1'b1; //init_att is enabled upon reset
-        hawk_cmd_run <= 'd0;
     end
     else begin
         p_state<=n_state;

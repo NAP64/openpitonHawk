@@ -21,304 +21,157 @@ module hawk_axi_xbar_wrapper#(parameter PLACE_HOLDER=1)
     //HACD<->MC
     //hacd will act as request master on request singslas to mc 
     HACD_MC_AXI_WR_BUS.mstr out_axi_wr_bus,  
-    HACD_MC_AXI_RD_BUS.mstr out_axi_rd_bus ,
-    input wire use_axi 
+    HACD_MC_AXI_RD_BUS.mstr out_axi_rd_bus
 );
  
-    HACD_AXI_XBAR_WR_BUS xbarOut_axi_wr_bus(); 
-    HACD_AXI_XBAR_RD_BUS xbarOut_axi_rd_bus();
-    HACD_AXI_XBAR_WR_BUS xbarOut2_axi_wr_bus(); 
-    HACD_AXI_XBAR_RD_BUS xbarOut2_axi_rd_bus();
+    HACD_AXI_WR_BUS xbarOut_axi_wr_bus(); 
+    HACD_AXI_RD_BUS xbarOut_axi_rd_bus();
+    HACD_AXI_WR_BUS #(.AXI4_ID_WIDTH (`HACD_MC_AXI4_ID_WIDTH)) xbarOut2_axi_wr_bus(); 
+    HACD_AXI_RD_BUS #(.AXI4_ID_WIDTH (`HACD_MC_AXI4_ID_WIDTH)) xbarOut2_axi_rd_bus();
 
-//`define NO_AXI_XBAR 1
-`ifdef NO_AXI_XBAR
-always_comb
-begin
-	if(mstr_sel) begin
-    		//WRITE ADDRESS CHANNEL
-		xbarOut_axi_wr_bus.axi_awid 	=mstr1_axi_wr_bus_slv.axi_awid;
-		xbarOut_axi_wr_bus.axi_awaddr	=mstr1_axi_wr_bus_slv.axi_awaddr;
-		xbarOut_axi_wr_bus.axi_awlen	=mstr1_axi_wr_bus_slv.axi_awlen;
-		xbarOut_axi_wr_bus.axi_awsize	=mstr1_axi_wr_bus_slv.axi_awsize;
-		xbarOut_axi_wr_bus.axi_awburst	=mstr1_axi_wr_bus_slv.axi_awburst;
-		xbarOut_axi_wr_bus.axi_awlock	=mstr1_axi_wr_bus_slv.axi_awlock;
-		xbarOut_axi_wr_bus.axi_awcache	=mstr1_axi_wr_bus_slv.axi_awcache;
-		xbarOut_axi_wr_bus.axi_awprot	=mstr1_axi_wr_bus_slv.axi_awprot;
-		xbarOut_axi_wr_bus.axi_awqos	=mstr1_axi_wr_bus_slv.axi_awqos;
-		xbarOut_axi_wr_bus.axi_awregion	=mstr1_axi_wr_bus_slv.axi_awregion;
-		xbarOut_axi_wr_bus.axi_awuser	=mstr1_axi_wr_bus_slv.axi_awuser;
-		xbarOut_axi_wr_bus.axi_awvalid	=mstr1_axi_wr_bus_slv.axi_awvalid;
-        	mstr1_axi_wr_bus_slv.axi_awready 	=xbarOut_axi_wr_bus.axi_awready;
+axi_crossbar #(.DDR_START_ADDR(DDR_START_ADDR), .S_COUNT(2), .S_ID_WIDTH(`HACD_AXI4_ID_WIDTH - 1), .M_ID_WIDTH(`HACD_AXI4_ID_WIDTH)) u_hawk_axi_crossbar1 (
+     .clk(clk_i),
+     .rst(!rst_ni),
+   
+     .s_axi_awid(	{mstr0_axi_wr_bus_slv.axi_awid[`HACD_AXI4_ID_WIDTH - 2:0],		mstr2_axi_wr_bus_slv.axi_awid[`HACD_AXI4_ID_WIDTH - 2:0]       }),
+     .s_axi_awaddr(	{mstr0_axi_wr_bus_slv.axi_awaddr,	mstr2_axi_wr_bus_slv.axi_awaddr     }),
+     .s_axi_awlen(	{mstr0_axi_wr_bus_slv.axi_awlen,	mstr2_axi_wr_bus_slv.axi_awlen      }),
+     .s_axi_awsize(	{mstr0_axi_wr_bus_slv.axi_awsize,	mstr2_axi_wr_bus_slv.axi_awsize     }),
+     .s_axi_awburst({mstr0_axi_wr_bus_slv.axi_awburst,	mstr2_axi_wr_bus_slv.axi_awburst    }),
+     .s_axi_awlock(	{mstr0_axi_wr_bus_slv.axi_awlock,	mstr2_axi_wr_bus_slv.axi_awlock     }),
+     .s_axi_awcache({mstr0_axi_wr_bus_slv.axi_awcache,	mstr2_axi_wr_bus_slv.axi_awcache    }),
+     .s_axi_awprot(	{mstr0_axi_wr_bus_slv.axi_awprot,	mstr2_axi_wr_bus_slv.axi_awprot     }),
+     .s_axi_awqos(	{mstr0_axi_wr_bus_slv.axi_awqos,	mstr2_axi_wr_bus_slv.axi_awqos      }),
+     .s_axi_awuser(	{mstr0_axi_wr_bus_slv.axi_awuser,	mstr2_axi_wr_bus_slv.axi_awuser     }),
+     .s_axi_awvalid({mstr0_axi_wr_bus_slv.axi_awvalid,	mstr2_axi_wr_bus_slv.axi_awvalid    }),
+     .s_axi_awready({mstr0_axi_wr_bus_slv.axi_awready,	mstr2_axi_wr_bus_slv.axi_awready    }),
+     .s_axi_wdata(	{mstr0_axi_wr_bus_slv.axi_wdata,	mstr2_axi_wr_bus_slv.axi_wdata      }),
+     .s_axi_wstrb(	{mstr0_axi_wr_bus_slv.axi_wstrb,	mstr2_axi_wr_bus_slv.axi_wstrb      }),
+     .s_axi_wlast(	{mstr0_axi_wr_bus_slv.axi_wlast,	mstr2_axi_wr_bus_slv.axi_wlast      }),
+     .s_axi_wuser(	{mstr0_axi_wr_bus_slv.axi_wuser,	mstr2_axi_wr_bus_slv.axi_wuser      }),
+     .s_axi_wvalid(	{mstr0_axi_wr_bus_slv.axi_wvalid,	mstr2_axi_wr_bus_slv.axi_wvalid     }),
+     .s_axi_wready(	{mstr0_axi_wr_bus_slv.axi_wready,	mstr2_axi_wr_bus_slv.axi_wready     }),
+     .s_axi_bid(	{mstr0_axi_wr_bus_slv.axi_bid[`HACD_AXI4_ID_WIDTH - 2:0],		mstr2_axi_wr_bus_slv.axi_bid[`HACD_AXI4_ID_WIDTH - 2:0]        }),
+     .s_axi_bresp(	{mstr0_axi_wr_bus_slv.axi_bresp,	mstr2_axi_wr_bus_slv.axi_bresp      }),
+     .s_axi_buser(	{mstr0_axi_wr_bus_slv.axi_buser,	mstr2_axi_wr_bus_slv.axi_buser      }),
+     .s_axi_bvalid(	{mstr0_axi_wr_bus_slv.axi_bvalid,	mstr2_axi_wr_bus_slv.axi_bvalid     }),
+     .s_axi_bready(	{mstr0_axi_wr_bus_slv.axi_bready,	mstr2_axi_wr_bus_slv.axi_bready     }),
 
-    		//READ ADDRESS CHANNEL
-		xbarOut_axi_rd_bus.axi_arid 	=mstr1_axi_rd_bus_slv.axi_arid;
-		xbarOut_axi_rd_bus.axi_araddr	=mstr1_axi_rd_bus_slv.axi_araddr;
-		xbarOut_axi_rd_bus.axi_arprot	=mstr1_axi_rd_bus_slv.axi_arprot;
-		xbarOut_axi_rd_bus.axi_arregion	=mstr1_axi_rd_bus_slv.axi_arregion;
-		xbarOut_axi_rd_bus.axi_arlen	=mstr1_axi_rd_bus_slv.axi_arlen;
-		xbarOut_axi_rd_bus.axi_arsize	=mstr1_axi_rd_bus_slv.axi_arsize;
-		xbarOut_axi_rd_bus.axi_arburst	=mstr1_axi_rd_bus_slv.axi_arburst;
-		xbarOut_axi_rd_bus.axi_arlock	=mstr1_axi_rd_bus_slv.axi_arlock;
-		xbarOut_axi_rd_bus.axi_arcache	=mstr1_axi_rd_bus_slv.axi_arcache;
-		xbarOut_axi_rd_bus.axi_arqos	=mstr1_axi_rd_bus_slv.axi_arqos;
-		xbarOut_axi_rd_bus.axi_arvalid		=mstr1_axi_rd_bus_slv.axi_arvalid;
-		xbarOut_axi_rd_bus.axi_aruser	=mstr1_axi_rd_bus_slv.axi_aruser;
-        	mstr1_axi_rd_bus_slv.axi_arready 	=xbarOut_axi_rd_bus.axi_arready;
+     .s_axi_arid(	{mstr0_axi_rd_bus_slv.axi_arid[`HACD_AXI4_ID_WIDTH - 2:0],		mstr2_axi_rd_bus_slv.axi_arid[`HACD_AXI4_ID_WIDTH - 2:0]       }),
+     .s_axi_araddr(	{mstr0_axi_rd_bus_slv.axi_araddr,	mstr2_axi_rd_bus_slv.axi_araddr     }),
+     .s_axi_arlen(	{mstr0_axi_rd_bus_slv.axi_arlen,	mstr2_axi_rd_bus_slv.axi_arlen      }),
+     .s_axi_arsize(	{mstr0_axi_rd_bus_slv.axi_arsize,	mstr2_axi_rd_bus_slv.axi_arsize     }),
+     .s_axi_arburst({mstr0_axi_rd_bus_slv.axi_arburst,	mstr2_axi_rd_bus_slv.axi_arburst    }),
+     .s_axi_arlock(	{mstr0_axi_rd_bus_slv.axi_arlock,	mstr2_axi_rd_bus_slv.axi_arlock     }),
+     .s_axi_arcache({mstr0_axi_rd_bus_slv.axi_arcache,	mstr2_axi_rd_bus_slv.axi_arcache    }),
+     .s_axi_arprot(	{mstr0_axi_rd_bus_slv.axi_arprot,	mstr2_axi_rd_bus_slv.axi_arprot     }),
+     .s_axi_arqos(	{mstr0_axi_rd_bus_slv.axi_arqos,	mstr2_axi_rd_bus_slv.axi_arqos      }),
+     .s_axi_aruser(	{mstr0_axi_rd_bus_slv.axi_aruser,	mstr2_axi_rd_bus_slv.axi_aruser     }),
+     .s_axi_arvalid({mstr0_axi_rd_bus_slv.axi_arvalid,	mstr2_axi_rd_bus_slv.axi_arvalid    }),
+     .s_axi_arready({mstr0_axi_rd_bus_slv.axi_arready,	mstr2_axi_rd_bus_slv.axi_arready    }),
 
-		//WRITE DATA CHANNEL
-		xbarOut_axi_wr_bus.axi_wvalid	=mstr1_axi_wr_bus_slv.axi_wvalid;
-		xbarOut_axi_wr_bus.axi_wdata	=mstr1_axi_wr_bus_slv.axi_wdata;
-		xbarOut_axi_wr_bus.axi_wstrb	=mstr1_axi_wr_bus_slv.axi_wstrb;
-		xbarOut_axi_wr_bus.axi_wuser	=mstr1_axi_wr_bus_slv.axi_wuser;
-		xbarOut_axi_wr_bus.axi_wlast	=mstr1_axi_wr_bus_slv.axi_wlast;
-	        mstr1_axi_wr_bus_slv.axi_wready		=xbarOut_axi_wr_bus.axi_wready;
+     .s_axi_rid(	{mstr0_axi_rd_bus_slv.axi_rid[`HACD_AXI4_ID_WIDTH - 2:0],		mstr2_axi_rd_bus_slv.axi_rid[`HACD_AXI4_ID_WIDTH - 2:0]        }),
+     .s_axi_rdata(	{mstr0_axi_rd_bus_slv.axi_rdata,	mstr2_axi_rd_bus_slv.axi_rdata      }),
+     .s_axi_rresp(	{mstr0_axi_rd_bus_slv.axi_rresp,	mstr2_axi_rd_bus_slv.axi_rresp      }),
+     .s_axi_rlast(	{mstr0_axi_rd_bus_slv.axi_rlast,	mstr2_axi_rd_bus_slv.axi_rlast      }),
+     .s_axi_ruser(	{mstr0_axi_rd_bus_slv.axi_ruser,	mstr2_axi_rd_bus_slv.axi_ruser      }),
+     .s_axi_rvalid(	{mstr0_axi_rd_bus_slv.axi_rvalid,	mstr2_axi_rd_bus_slv.axi_rvalid     }),
+     .s_axi_rready(	{mstr0_axi_rd_bus_slv.axi_rready,	mstr2_axi_rd_bus_slv.axi_rready     }),
 
-    		//READ DATA CHANNEL
-		mstr1_axi_rd_bus_slv.axi_rvalid		=xbarOut_axi_rd_bus.axi_rvalid;
-		mstr1_axi_rd_bus_slv.axi_rdata 		=xbarOut_axi_rd_bus.axi_rdata;
-		mstr1_axi_rd_bus_slv.axi_rresp 		=xbarOut_axi_rd_bus.axi_rresp;
-		mstr1_axi_rd_bus_slv.axi_rlast 		=xbarOut_axi_rd_bus.axi_rlast;
-		mstr1_axi_rd_bus_slv.axi_rid   		=xbarOut_axi_rd_bus.axi_rid;
-		mstr1_axi_rd_bus_slv.axi_ruser 		=xbarOut_axi_rd_bus.axi_ruser;
-		xbarOut_axi_rd_bus.axi_rready	=mstr1_axi_rd_bus_slv.axi_rready;
-
-    		// WRITE RESPONSE CHANNEL
-		mstr1_axi_wr_bus_slv.axi_bvalid		=xbarOut_axi_wr_bus.axi_bvalid;
-		mstr1_axi_wr_bus_slv.axi_bresp		=xbarOut_axi_wr_bus.axi_bresp;
-		mstr1_axi_wr_bus_slv.axi_bid		=xbarOut_axi_wr_bus.axi_bid;
-		mstr1_axi_wr_bus_slv.axi_buser		=xbarOut_axi_wr_bus.axi_buser;
-		xbarOut_axi_wr_bus.axi_bready 	=mstr1_axi_wr_bus_slv.axi_bready;
-	end
-	else begin
-    		//WRITE ADDRESS CHANNEL
-		xbarOut_axi_wr_bus.axi_awid 	=mstr0_axi_wr_bus_slv.axi_awid;
-		xbarOut_axi_wr_bus.axi_awaddr	=mstr0_axi_wr_bus_slv.axi_awaddr;
-		xbarOut_axi_wr_bus.axi_awprot	=mstr0_axi_wr_bus_slv.axi_awprot;
-		xbarOut_axi_wr_bus.axi_awregion	=mstr0_axi_wr_bus_slv.axi_awregion;
-		xbarOut_axi_wr_bus.axi_awlen	=mstr0_axi_wr_bus_slv.axi_awlen;
-		xbarOut_axi_wr_bus.axi_awsize	=mstr0_axi_wr_bus_slv.axi_awsize;
-		xbarOut_axi_wr_bus.axi_awburst	=mstr0_axi_wr_bus_slv.axi_awburst;
-		xbarOut_axi_wr_bus.axi_awlock	=mstr0_axi_wr_bus_slv.axi_awlock;
-		xbarOut_axi_wr_bus.axi_awcache	=mstr0_axi_wr_bus_slv.axi_awcache;
-		xbarOut_axi_wr_bus.axi_awqos	=mstr0_axi_wr_bus_slv.axi_awqos;
-		xbarOut_axi_wr_bus.axi_awvalid	=mstr0_axi_wr_bus_slv.axi_awvalid;
-		xbarOut_axi_wr_bus.axi_awuser	=mstr0_axi_wr_bus_slv.axi_awuser;
-        	mstr0_axi_wr_bus_slv.axi_awready 	=xbarOut_axi_wr_bus.axi_awready;
-
-    		//READ ADDRESS CHANNEL
-		xbarOut_axi_rd_bus.axi_arid 	=mstr0_axi_rd_bus_slv.axi_arid;
-		xbarOut_axi_rd_bus.axi_araddr	=mstr0_axi_rd_bus_slv.axi_araddr;
-		xbarOut_axi_rd_bus.axi_arprot	=mstr0_axi_rd_bus_slv.axi_arprot;
-		xbarOut_axi_rd_bus.axi_arregion	=mstr0_axi_rd_bus_slv.axi_arregion;
-		xbarOut_axi_rd_bus.axi_arlen	=mstr0_axi_rd_bus_slv.axi_arlen;
-		xbarOut_axi_rd_bus.axi_arsize	=mstr0_axi_rd_bus_slv.axi_arsize;
-		xbarOut_axi_rd_bus.axi_arburst	=mstr0_axi_rd_bus_slv.axi_arburst;
-		xbarOut_axi_rd_bus.axi_arlock	=mstr0_axi_rd_bus_slv.axi_arlock;
-		xbarOut_axi_rd_bus.axi_arcache	=mstr0_axi_rd_bus_slv.axi_arcache;
-		xbarOut_axi_rd_bus.axi_arqos	=mstr0_axi_rd_bus_slv.axi_arqos;
-		xbarOut_axi_rd_bus.axi_arvalid	=mstr0_axi_rd_bus_slv.axi_arvalid;
-		xbarOut_axi_rd_bus.axi_aruser	=mstr0_axi_rd_bus_slv.axi_aruser;
-        	mstr0_axi_rd_bus_slv.axi_arready 	=xbarOut_axi_rd_bus.axi_arready;
-
-		//WRITE DATA CHANNEL
-		xbarOut_axi_wr_bus.axi_wvalid	=mstr0_axi_wr_bus_slv.axi_wvalid;
-		xbarOut_axi_wr_bus.axi_wdata	=mstr0_axi_wr_bus_slv.axi_wdata;
-		xbarOut_axi_wr_bus.axi_wstrb	=mstr0_axi_wr_bus_slv.axi_wstrb;
-		xbarOut_axi_wr_bus.axi_wuser	=mstr0_axi_wr_bus_slv.axi_wuser;
-		xbarOut_axi_wr_bus.axi_wlast	=mstr0_axi_wr_bus_slv.axi_wlast;
-	        mstr0_axi_wr_bus_slv.axi_wready		=xbarOut_axi_wr_bus.axi_wready;
-
-    		//READ DATA CHANNEL
-		mstr0_axi_rd_bus_slv.axi_rvalid		=xbarOut_axi_rd_bus.axi_rvalid;
-		mstr0_axi_rd_bus_slv.axi_rdata 		=xbarOut_axi_rd_bus.axi_rdata;
-		mstr0_axi_rd_bus_slv.axi_rresp 		=xbarOut_axi_rd_bus.axi_rresp;
-		mstr0_axi_rd_bus_slv.axi_rlast 		=xbarOut_axi_rd_bus.axi_rlast;
-		mstr0_axi_rd_bus_slv.axi_rid   		=xbarOut_axi_rd_bus.axi_rid;
-		mstr0_axi_rd_bus_slv.axi_ruser 		=xbarOut_axi_rd_bus.axi_ruser;
-		xbarOut_axi_rd_bus.axi_rready	=mstr0_axi_rd_bus_slv.axi_rready;
-
-    		// WRITE RESPONSE CHANNEL
-		mstr0_axi_wr_bus_slv.axi_bvalid		=xbarOut_axi_wr_bus.axi_bvalid;
-		mstr0_axi_wr_bus_slv.axi_bresp		=xbarOut_axi_wr_bus.axi_bresp;
-		mstr0_axi_wr_bus_slv.axi_bid		=xbarOut_axi_wr_bus.axi_bid;
-		mstr0_axi_wr_bus_slv.axi_buser		=xbarOut_axi_wr_bus.axi_buser;
-		xbarOut_axi_wr_bus.axi_bready 	=mstr0_axi_wr_bus_slv.axi_bready;
-	end
-end
-`else
-
-always_comb
-begin
-	if(!use_axi) begin
-    		//WRITE ADDRESS CHANNEL
-		xbarOut_axi_wr_bus.axi_awid 	=mstr0_axi_wr_bus_slv.axi_awid;
-		xbarOut_axi_wr_bus.axi_awaddr	=mstr0_axi_wr_bus_slv.axi_awaddr;
-		xbarOut_axi_wr_bus.axi_awlen	=mstr0_axi_wr_bus_slv.axi_awlen;
-		xbarOut_axi_wr_bus.axi_awsize	=mstr0_axi_wr_bus_slv.axi_awsize;
-		xbarOut_axi_wr_bus.axi_awburst	=mstr0_axi_wr_bus_slv.axi_awburst;
-		xbarOut_axi_wr_bus.axi_awlock	=mstr0_axi_wr_bus_slv.axi_awlock;
-		xbarOut_axi_wr_bus.axi_awcache	=mstr0_axi_wr_bus_slv.axi_awcache;
-		xbarOut_axi_wr_bus.axi_awprot	=mstr0_axi_wr_bus_slv.axi_awprot;
-		xbarOut_axi_wr_bus.axi_awqos	=mstr0_axi_wr_bus_slv.axi_awqos;
-		xbarOut_axi_wr_bus.axi_awregion	=mstr0_axi_wr_bus_slv.axi_awregion;
-		xbarOut_axi_wr_bus.axi_awuser	=mstr0_axi_wr_bus_slv.axi_awuser;
-		xbarOut_axi_wr_bus.axi_awvalid	=mstr0_axi_wr_bus_slv.axi_awvalid;
-
-        mstr0_axi_wr_bus_slv.axi_awready=xbarOut_axi_wr_bus.axi_awready;
-
-    		//READ ADDRESS CHANNEL
-		xbarOut_axi_rd_bus.axi_arid 	=mstr0_axi_rd_bus_slv.axi_arid;
-		xbarOut_axi_rd_bus.axi_araddr	=mstr0_axi_rd_bus_slv.axi_araddr;
-		xbarOut_axi_rd_bus.axi_arprot	=mstr0_axi_rd_bus_slv.axi_arprot;
-		xbarOut_axi_rd_bus.axi_arregion	=mstr0_axi_rd_bus_slv.axi_arregion;
-		xbarOut_axi_rd_bus.axi_arlen	=mstr0_axi_rd_bus_slv.axi_arlen;
-		xbarOut_axi_rd_bus.axi_arsize	=mstr0_axi_rd_bus_slv.axi_arsize;
-		xbarOut_axi_rd_bus.axi_arburst	=mstr0_axi_rd_bus_slv.axi_arburst;
-		xbarOut_axi_rd_bus.axi_arlock	=mstr0_axi_rd_bus_slv.axi_arlock;
-		xbarOut_axi_rd_bus.axi_arcache	=mstr0_axi_rd_bus_slv.axi_arcache;
-		xbarOut_axi_rd_bus.axi_arqos	=mstr0_axi_rd_bus_slv.axi_arqos;
-		xbarOut_axi_rd_bus.axi_arvalid	=mstr0_axi_rd_bus_slv.axi_arvalid;
-		xbarOut_axi_rd_bus.axi_aruser	=mstr0_axi_rd_bus_slv.axi_aruser;
-
-        mstr0_axi_rd_bus_slv.axi_arready=xbarOut_axi_rd_bus.axi_arready;
-
-		//WRITE DATA CHANNEL
-		xbarOut_axi_wr_bus.axi_wvalid	=mstr0_axi_wr_bus_slv.axi_wvalid;
-		xbarOut_axi_wr_bus.axi_wdata	=mstr0_axi_wr_bus_slv.axi_wdata;
-		xbarOut_axi_wr_bus.axi_wstrb	=mstr0_axi_wr_bus_slv.axi_wstrb;
-		xbarOut_axi_wr_bus.axi_wuser	=mstr0_axi_wr_bus_slv.axi_wuser;
-		xbarOut_axi_wr_bus.axi_wlast	=mstr0_axi_wr_bus_slv.axi_wlast;
-
-	    mstr0_axi_wr_bus_slv.axi_wready	=xbarOut_axi_wr_bus.axi_wready;
-
-    		//READ DATA CHANNEL
-		mstr0_axi_rd_bus_slv.axi_rvalid		=xbarOut_axi_rd_bus.axi_rvalid;
-		mstr0_axi_rd_bus_slv.axi_rdata 		=xbarOut_axi_rd_bus.axi_rdata;
-		mstr0_axi_rd_bus_slv.axi_rresp 		=xbarOut_axi_rd_bus.axi_rresp;
-		mstr0_axi_rd_bus_slv.axi_rlast 		=xbarOut_axi_rd_bus.axi_rlast;
-		mstr0_axi_rd_bus_slv.axi_rid   		=xbarOut_axi_rd_bus.axi_rid;
-		mstr0_axi_rd_bus_slv.axi_ruser 		=xbarOut_axi_rd_bus.axi_ruser;
-
-		xbarOut_axi_rd_bus.axi_rready	    =mstr0_axi_rd_bus_slv.axi_rready;
-
-    		// WRITE RESPONSE CHANNEL
-		mstr0_axi_wr_bus_slv.axi_bvalid		=xbarOut_axi_wr_bus.axi_bvalid;
-		mstr0_axi_wr_bus_slv.axi_bresp		=xbarOut_axi_wr_bus.axi_bresp;
-		mstr0_axi_wr_bus_slv.axi_bid		=xbarOut_axi_wr_bus.axi_bid;
-		mstr0_axi_wr_bus_slv.axi_buser		=xbarOut_axi_wr_bus.axi_buser;
-        
-		xbarOut_axi_wr_bus.axi_bready 	    =mstr0_axi_wr_bus_slv.axi_bready;
-	end
-    else begin
-    		//WRITE ADDRESS CHANNEL
-		xbarOut_axi_wr_bus.axi_awid 	=mstr2_axi_wr_bus_slv.axi_awid;
-		xbarOut_axi_wr_bus.axi_awaddr	=mstr2_axi_wr_bus_slv.axi_awaddr;
-		xbarOut_axi_wr_bus.axi_awlen	=mstr2_axi_wr_bus_slv.axi_awlen;
-		xbarOut_axi_wr_bus.axi_awsize	=mstr2_axi_wr_bus_slv.axi_awsize;
-		xbarOut_axi_wr_bus.axi_awburst	=mstr2_axi_wr_bus_slv.axi_awburst;
-		xbarOut_axi_wr_bus.axi_awlock	=mstr2_axi_wr_bus_slv.axi_awlock;
-		xbarOut_axi_wr_bus.axi_awcache	=mstr2_axi_wr_bus_slv.axi_awcache;
-		xbarOut_axi_wr_bus.axi_awprot	=mstr2_axi_wr_bus_slv.axi_awprot;
-		xbarOut_axi_wr_bus.axi_awqos	=mstr2_axi_wr_bus_slv.axi_awqos;
-		xbarOut_axi_wr_bus.axi_awregion	=mstr2_axi_wr_bus_slv.axi_awregion;
-		xbarOut_axi_wr_bus.axi_awuser	=mstr2_axi_wr_bus_slv.axi_awuser;
-		xbarOut_axi_wr_bus.axi_awvalid	=mstr2_axi_wr_bus_slv.axi_awvalid;
-
-        mstr2_axi_wr_bus_slv.axi_awready=xbarOut_axi_wr_bus.axi_awready;
-
-    		//READ ADDRESS CHANNEL
-		xbarOut_axi_rd_bus.axi_arid 	=mstr2_axi_rd_bus_slv.axi_arid;
-		xbarOut_axi_rd_bus.axi_araddr	=mstr2_axi_rd_bus_slv.axi_araddr;
-		xbarOut_axi_rd_bus.axi_arprot	=mstr2_axi_rd_bus_slv.axi_arprot;
-		xbarOut_axi_rd_bus.axi_arregion	=mstr2_axi_rd_bus_slv.axi_arregion;
-		xbarOut_axi_rd_bus.axi_arlen	=mstr2_axi_rd_bus_slv.axi_arlen;
-		xbarOut_axi_rd_bus.axi_arsize	=mstr2_axi_rd_bus_slv.axi_arsize;
-		xbarOut_axi_rd_bus.axi_arburst	=mstr2_axi_rd_bus_slv.axi_arburst;
-		xbarOut_axi_rd_bus.axi_arlock	=mstr2_axi_rd_bus_slv.axi_arlock;
-		xbarOut_axi_rd_bus.axi_arcache	=mstr2_axi_rd_bus_slv.axi_arcache;
-		xbarOut_axi_rd_bus.axi_arqos	=mstr2_axi_rd_bus_slv.axi_arqos;
-		xbarOut_axi_rd_bus.axi_arvalid	=mstr2_axi_rd_bus_slv.axi_arvalid;
-		xbarOut_axi_rd_bus.axi_aruser	=mstr2_axi_rd_bus_slv.axi_aruser;
-
-        mstr2_axi_rd_bus_slv.axi_arready=xbarOut_axi_rd_bus.axi_arready;
-
-		//WRITE DATA CHANNEL
-		xbarOut_axi_wr_bus.axi_wvalid	=mstr2_axi_wr_bus_slv.axi_wvalid;
-		xbarOut_axi_wr_bus.axi_wdata	=mstr2_axi_wr_bus_slv.axi_wdata;
-		xbarOut_axi_wr_bus.axi_wstrb	=mstr2_axi_wr_bus_slv.axi_wstrb;
-		xbarOut_axi_wr_bus.axi_wuser	=mstr2_axi_wr_bus_slv.axi_wuser;
-		xbarOut_axi_wr_bus.axi_wlast	=mstr2_axi_wr_bus_slv.axi_wlast;
-
-	    mstr2_axi_wr_bus_slv.axi_wready	=xbarOut_axi_wr_bus.axi_wready;
-
-    		//READ DATA CHANNEL
-		mstr2_axi_rd_bus_slv.axi_rvalid		=xbarOut_axi_rd_bus.axi_rvalid;
-		mstr2_axi_rd_bus_slv.axi_rdata 		=xbarOut_axi_rd_bus.axi_rdata;
-		mstr2_axi_rd_bus_slv.axi_rresp 		=xbarOut_axi_rd_bus.axi_rresp;
-		mstr2_axi_rd_bus_slv.axi_rlast 		=xbarOut_axi_rd_bus.axi_rlast;
-		mstr2_axi_rd_bus_slv.axi_rid   		=xbarOut_axi_rd_bus.axi_rid;
-		mstr2_axi_rd_bus_slv.axi_ruser 		=xbarOut_axi_rd_bus.axi_ruser;
-
-		xbarOut_axi_rd_bus.axi_rready	    =mstr2_axi_rd_bus_slv.axi_rready;
-
-    		// WRITE RESPONSE CHANNEL
-		mstr2_axi_wr_bus_slv.axi_bvalid		=xbarOut_axi_wr_bus.axi_bvalid;
-		mstr2_axi_wr_bus_slv.axi_bresp		=xbarOut_axi_wr_bus.axi_bresp;
-		mstr2_axi_wr_bus_slv.axi_bid		=xbarOut_axi_wr_bus.axi_bid;
-		mstr2_axi_wr_bus_slv.axi_buser		=xbarOut_axi_wr_bus.axi_buser;
-        
-		xbarOut_axi_wr_bus.axi_bready 	    =mstr2_axi_wr_bus_slv.axi_bready;
-	end
-end
+     .m_axi_awid(		xbarOut_axi_wr_bus.axi_awid),
+     .m_axi_awaddr(		xbarOut_axi_wr_bus.axi_awaddr),
+     .m_axi_awlen(		xbarOut_axi_wr_bus.axi_awlen),
+     .m_axi_awsize(		xbarOut_axi_wr_bus.axi_awsize),
+     .m_axi_awburst(	xbarOut_axi_wr_bus.axi_awburst),
+     .m_axi_awlock(		xbarOut_axi_wr_bus.axi_awlock),
+     .m_axi_awcache(	xbarOut_axi_wr_bus.axi_awcache),
+     .m_axi_awprot(		xbarOut_axi_wr_bus.axi_awprot),
+     .m_axi_awqos(		xbarOut_axi_wr_bus.axi_awqos),
+     .m_axi_awregion(	xbarOut_axi_wr_bus.axi_awregion),
+     .m_axi_awuser(		xbarOut_axi_wr_bus.axi_awuser),
+     .m_axi_awvalid(	xbarOut_axi_wr_bus.axi_awvalid),
+     .m_axi_awready(	xbarOut_axi_wr_bus.axi_awready),
+     .m_axi_wdata(		xbarOut_axi_wr_bus.axi_wdata),
+     .m_axi_wstrb(		xbarOut_axi_wr_bus.axi_wstrb),
+     .m_axi_wlast(		xbarOut_axi_wr_bus.axi_wlast),
+     .m_axi_wuser(		xbarOut_axi_wr_bus.axi_wuser),
+     .m_axi_wvalid(		xbarOut_axi_wr_bus.axi_wvalid),
+     .m_axi_wready(		xbarOut_axi_wr_bus.axi_wready),
+     .m_axi_bid(		xbarOut_axi_wr_bus.axi_bid),
+     .m_axi_bresp(		xbarOut_axi_wr_bus.axi_bresp),
+     .m_axi_buser(		xbarOut_axi_wr_bus.axi_buser),
+     .m_axi_bvalid(		xbarOut_axi_wr_bus.axi_bvalid),
+     .m_axi_bready(		xbarOut_axi_wr_bus.axi_bready),
+     .m_axi_arid(		xbarOut_axi_rd_bus.axi_arid),
+     .m_axi_araddr(		xbarOut_axi_rd_bus.axi_araddr),
+     .m_axi_arlen(		xbarOut_axi_rd_bus.axi_arlen),
+     .m_axi_arsize(		xbarOut_axi_rd_bus.axi_arsize),
+     .m_axi_arburst(	xbarOut_axi_rd_bus.axi_arburst),
+     .m_axi_arlock(		xbarOut_axi_rd_bus.axi_arlock),
+     .m_axi_arcache(	xbarOut_axi_rd_bus.axi_arcache),
+     .m_axi_arprot(		xbarOut_axi_rd_bus.axi_arprot),
+     .m_axi_arqos(		xbarOut_axi_rd_bus.axi_arqos),
+     .m_axi_arregion(	xbarOut_axi_rd_bus.axi_arregion),
+     .m_axi_aruser(		xbarOut_axi_rd_bus.axi_aruser),
+     .m_axi_arvalid(	xbarOut_axi_rd_bus.axi_arvalid),
+     .m_axi_arready(	xbarOut_axi_rd_bus.axi_arready),
+     .m_axi_rid(		xbarOut_axi_rd_bus.axi_rid),
+     .m_axi_rdata(		xbarOut_axi_rd_bus.axi_rdata),
+     .m_axi_rresp(		xbarOut_axi_rd_bus.axi_rresp),
+     .m_axi_rlast(		xbarOut_axi_rd_bus.axi_rlast),
+     .m_axi_ruser(		xbarOut_axi_rd_bus.axi_ruser),
+     .m_axi_rvalid(		xbarOut_axi_rd_bus.axi_rvalid),
+     .m_axi_rready(		xbarOut_axi_rd_bus.axi_rready)
+);
 
 axi_crossbar #(.DDR_START_ADDR(DDR_START_ADDR), .S_COUNT(2)) u_hawk_axi_crossbar2 (
      .clk(clk_i),
      .rst(!rst_ni),
    
-     .s_axi_awid(	{mstr1_axi_wr_bus_slv.axi_awid,		xbarOut_axi_wr_bus.axi_awid       }),//,mstr2_axi_wr_bus_slv.axi_awid   }),
-     .s_axi_awaddr(	{mstr1_axi_wr_bus_slv.axi_awaddr,	xbarOut_axi_wr_bus.axi_awaddr     }),//,mstr2_axi_wr_bus_slv.axi_awaddr }),
-     .s_axi_awlen(	{mstr1_axi_wr_bus_slv.axi_awlen,	xbarOut_axi_wr_bus.axi_awlen      }),//,mstr2_axi_wr_bus_slv.axi_awlen  }),
-     .s_axi_awsize(	{mstr1_axi_wr_bus_slv.axi_awsize,	xbarOut_axi_wr_bus.axi_awsize     }),//,mstr2_axi_wr_bus_slv.axi_awsize }),
-     .s_axi_awburst({mstr1_axi_wr_bus_slv.axi_awburst,	xbarOut_axi_wr_bus.axi_awburst    }),//,mstr2_axi_wr_bus_slv.axi_awburst}),
-     .s_axi_awlock(	{mstr1_axi_wr_bus_slv.axi_awlock,	xbarOut_axi_wr_bus.axi_awlock     }),//,mstr2_axi_wr_bus_slv.axi_awlock }),
-     .s_axi_awcache({mstr1_axi_wr_bus_slv.axi_awcache,	xbarOut_axi_wr_bus.axi_awcache    }),//,mstr2_axi_wr_bus_slv.axi_awcache}),
-     .s_axi_awprot(	{mstr1_axi_wr_bus_slv.axi_awprot,	xbarOut_axi_wr_bus.axi_awprot     }),//,mstr2_axi_wr_bus_slv.axi_awprot }),
-     .s_axi_awqos(	{mstr1_axi_wr_bus_slv.axi_awqos,	xbarOut_axi_wr_bus.axi_awqos      }),//,mstr2_axi_wr_bus_slv.axi_awqos  }),
-     .s_axi_awuser(	{mstr1_axi_wr_bus_slv.axi_awuser,	xbarOut_axi_wr_bus.axi_awuser     }),//,mstr2_axi_wr_bus_slv.axi_awuser }),
-     .s_axi_awvalid({mstr1_axi_wr_bus_slv.axi_awvalid,	xbarOut_axi_wr_bus.axi_awvalid    }),//,mstr2_axi_wr_bus_slv.axi_awvalid}),
-     .s_axi_awready({mstr1_axi_wr_bus_slv.axi_awready,	xbarOut_axi_wr_bus.axi_awready    }),//,mstr2_axi_wr_bus_slv.axi_awready}),
-     .s_axi_wdata(	{mstr1_axi_wr_bus_slv.axi_wdata,	xbarOut_axi_wr_bus.axi_wdata      }),//,mstr2_axi_wr_bus_slv.axi_wdata  }),
-     .s_axi_wstrb(	{mstr1_axi_wr_bus_slv.axi_wstrb,	xbarOut_axi_wr_bus.axi_wstrb      }),//,mstr2_axi_wr_bus_slv.axi_wstrb  }),
-     .s_axi_wlast(	{mstr1_axi_wr_bus_slv.axi_wlast,	xbarOut_axi_wr_bus.axi_wlast      }),//,mstr2_axi_wr_bus_slv.axi_wlast  }),
-     .s_axi_wuser(	{mstr1_axi_wr_bus_slv.axi_wuser,	xbarOut_axi_wr_bus.axi_wuser      }),//,mstr2_axi_wr_bus_slv.axi_wuser  }),
-     .s_axi_wvalid(	{mstr1_axi_wr_bus_slv.axi_wvalid,	xbarOut_axi_wr_bus.axi_wvalid     }),//,mstr2_axi_wr_bus_slv.axi_wvalid }),
-     .s_axi_wready(	{mstr1_axi_wr_bus_slv.axi_wready,	xbarOut_axi_wr_bus.axi_wready     }),//,mstr2_axi_wr_bus_slv.axi_wready }),
-     .s_axi_bid(	{mstr1_axi_wr_bus_slv.axi_bid,		xbarOut_axi_wr_bus.axi_bid        }),//,mstr2_axi_wr_bus_slv.axi_bid    }),
-     .s_axi_bresp(	{mstr1_axi_wr_bus_slv.axi_bresp,	xbarOut_axi_wr_bus.axi_bresp      }),//,mstr2_axi_wr_bus_slv.axi_bresp  }),
-     .s_axi_buser(	{mstr1_axi_wr_bus_slv.axi_buser,	xbarOut_axi_wr_bus.axi_buser      }),//,mstr2_axi_wr_bus_slv.axi_buser  }),
-     .s_axi_bvalid(	{mstr1_axi_wr_bus_slv.axi_bvalid,	xbarOut_axi_wr_bus.axi_bvalid     }),//,mstr2_axi_wr_bus_slv.axi_bvalid }),
-     .s_axi_bready(	{mstr1_axi_wr_bus_slv.axi_bready,	xbarOut_axi_wr_bus.axi_bready     }),//,mstr2_axi_wr_bus_slv.axi_bready }),
+     .s_axi_awid(	{mstr1_axi_wr_bus_slv.axi_awid,		xbarOut_axi_wr_bus.axi_awid       }),
+     .s_axi_awaddr(	{mstr1_axi_wr_bus_slv.axi_awaddr,	xbarOut_axi_wr_bus.axi_awaddr     }),
+     .s_axi_awlen(	{mstr1_axi_wr_bus_slv.axi_awlen,	xbarOut_axi_wr_bus.axi_awlen      }),
+     .s_axi_awsize(	{mstr1_axi_wr_bus_slv.axi_awsize,	xbarOut_axi_wr_bus.axi_awsize     }),
+     .s_axi_awburst({mstr1_axi_wr_bus_slv.axi_awburst,	xbarOut_axi_wr_bus.axi_awburst    }),
+     .s_axi_awlock(	{mstr1_axi_wr_bus_slv.axi_awlock,	xbarOut_axi_wr_bus.axi_awlock     }),
+     .s_axi_awcache({mstr1_axi_wr_bus_slv.axi_awcache,	xbarOut_axi_wr_bus.axi_awcache    }),
+     .s_axi_awprot(	{mstr1_axi_wr_bus_slv.axi_awprot,	xbarOut_axi_wr_bus.axi_awprot     }),
+     .s_axi_awqos(	{mstr1_axi_wr_bus_slv.axi_awqos,	xbarOut_axi_wr_bus.axi_awqos      }),
+     .s_axi_awuser(	{mstr1_axi_wr_bus_slv.axi_awuser,	xbarOut_axi_wr_bus.axi_awuser     }),
+     .s_axi_awvalid({mstr1_axi_wr_bus_slv.axi_awvalid,	xbarOut_axi_wr_bus.axi_awvalid    }),
+     .s_axi_awready({mstr1_axi_wr_bus_slv.axi_awready,	xbarOut_axi_wr_bus.axi_awready    }),
+     .s_axi_wdata(	{mstr1_axi_wr_bus_slv.axi_wdata,	xbarOut_axi_wr_bus.axi_wdata      }),
+     .s_axi_wstrb(	{mstr1_axi_wr_bus_slv.axi_wstrb,	xbarOut_axi_wr_bus.axi_wstrb      }),
+     .s_axi_wlast(	{mstr1_axi_wr_bus_slv.axi_wlast,	xbarOut_axi_wr_bus.axi_wlast      }),
+     .s_axi_wuser(	{mstr1_axi_wr_bus_slv.axi_wuser,	xbarOut_axi_wr_bus.axi_wuser      }),
+     .s_axi_wvalid(	{mstr1_axi_wr_bus_slv.axi_wvalid,	xbarOut_axi_wr_bus.axi_wvalid     }),
+     .s_axi_wready(	{mstr1_axi_wr_bus_slv.axi_wready,	xbarOut_axi_wr_bus.axi_wready     }),
+     .s_axi_bid(	{mstr1_axi_wr_bus_slv.axi_bid,		xbarOut_axi_wr_bus.axi_bid        }),
+     .s_axi_bresp(	{mstr1_axi_wr_bus_slv.axi_bresp,	xbarOut_axi_wr_bus.axi_bresp      }),
+     .s_axi_buser(	{mstr1_axi_wr_bus_slv.axi_buser,	xbarOut_axi_wr_bus.axi_buser      }),
+     .s_axi_bvalid(	{mstr1_axi_wr_bus_slv.axi_bvalid,	xbarOut_axi_wr_bus.axi_bvalid     }),
+     .s_axi_bready(	{mstr1_axi_wr_bus_slv.axi_bready,	xbarOut_axi_wr_bus.axi_bready     }),
 
-     .s_axi_arid(	{mstr1_axi_rd_bus_slv.axi_arid,		xbarOut_axi_rd_bus.axi_arid       }),//,mstr2_axi_rd_bus_slv.axi_arid   }),
-     .s_axi_araddr(	{mstr1_axi_rd_bus_slv.axi_araddr,	xbarOut_axi_rd_bus.axi_araddr     }),//,mstr2_axi_rd_bus_slv.axi_araddr }),
-     .s_axi_arlen(	{mstr1_axi_rd_bus_slv.axi_arlen,	xbarOut_axi_rd_bus.axi_arlen      }),//,mstr2_axi_rd_bus_slv.axi_arlen  }),
-     .s_axi_arsize(	{mstr1_axi_rd_bus_slv.axi_arsize,	xbarOut_axi_rd_bus.axi_arsize     }),//,mstr2_axi_rd_bus_slv.axi_arsize }),
-     .s_axi_arburst({mstr1_axi_rd_bus_slv.axi_arburst,	xbarOut_axi_rd_bus.axi_arburst    }),//,mstr2_axi_rd_bus_slv.axi_arburst}),
-     .s_axi_arlock(	{mstr1_axi_rd_bus_slv.axi_arlock,	xbarOut_axi_rd_bus.axi_arlock     }),//,mstr2_axi_rd_bus_slv.axi_arlock }),
-     .s_axi_arcache({mstr1_axi_rd_bus_slv.axi_arcache,	xbarOut_axi_rd_bus.axi_arcache    }),//,mstr2_axi_rd_bus_slv.axi_arcache}),
-     .s_axi_arprot(	{mstr1_axi_rd_bus_slv.axi_arprot,	xbarOut_axi_rd_bus.axi_arprot     }),//,mstr2_axi_rd_bus_slv.axi_arprot }),
-     .s_axi_arqos(	{mstr1_axi_rd_bus_slv.axi_arqos,	xbarOut_axi_rd_bus.axi_arqos      }),//,mstr2_axi_rd_bus_slv.axi_arqos  }),
-     .s_axi_aruser(	{mstr1_axi_rd_bus_slv.axi_aruser,	xbarOut_axi_rd_bus.axi_aruser     }),//,mstr2_axi_rd_bus_slv.axi_aruser }),
-     .s_axi_arvalid({mstr1_axi_rd_bus_slv.axi_arvalid,	xbarOut_axi_rd_bus.axi_arvalid    }),//,mstr2_axi_rd_bus_slv.axi_arvalid}),
-     .s_axi_arready({mstr1_axi_rd_bus_slv.axi_arready,	xbarOut_axi_rd_bus.axi_arready    }),//,mstr2_axi_rd_bus_slv.axi_arready}),
+     .s_axi_arid(	{mstr1_axi_rd_bus_slv.axi_arid,		xbarOut_axi_rd_bus.axi_arid       }),
+     .s_axi_araddr(	{mstr1_axi_rd_bus_slv.axi_araddr,	xbarOut_axi_rd_bus.axi_araddr     }),
+     .s_axi_arlen(	{mstr1_axi_rd_bus_slv.axi_arlen,	xbarOut_axi_rd_bus.axi_arlen      }),
+     .s_axi_arsize(	{mstr1_axi_rd_bus_slv.axi_arsize,	xbarOut_axi_rd_bus.axi_arsize     }),
+     .s_axi_arburst({mstr1_axi_rd_bus_slv.axi_arburst,	xbarOut_axi_rd_bus.axi_arburst    }),
+     .s_axi_arlock(	{mstr1_axi_rd_bus_slv.axi_arlock,	xbarOut_axi_rd_bus.axi_arlock     }),
+     .s_axi_arcache({mstr1_axi_rd_bus_slv.axi_arcache,	xbarOut_axi_rd_bus.axi_arcache    }),
+     .s_axi_arprot(	{mstr1_axi_rd_bus_slv.axi_arprot,	xbarOut_axi_rd_bus.axi_arprot     }),
+     .s_axi_arqos(	{mstr1_axi_rd_bus_slv.axi_arqos,	xbarOut_axi_rd_bus.axi_arqos      }),
+     .s_axi_aruser(	{mstr1_axi_rd_bus_slv.axi_aruser,	xbarOut_axi_rd_bus.axi_aruser     }),
+     .s_axi_arvalid({mstr1_axi_rd_bus_slv.axi_arvalid,	xbarOut_axi_rd_bus.axi_arvalid    }),
+     .s_axi_arready({mstr1_axi_rd_bus_slv.axi_arready,	xbarOut_axi_rd_bus.axi_arready    }),
 
-     .s_axi_rid(	{mstr1_axi_rd_bus_slv.axi_rid,		xbarOut_axi_rd_bus.axi_rid        }),//,mstr2_axi_rd_bus_slv.axi_rid    }),
-     .s_axi_rdata(	{mstr1_axi_rd_bus_slv.axi_rdata,	xbarOut_axi_rd_bus.axi_rdata      }),//,mstr2_axi_rd_bus_slv.axi_rdata  }),
-     .s_axi_rresp(	{mstr1_axi_rd_bus_slv.axi_rresp,	xbarOut_axi_rd_bus.axi_rresp      }),//,mstr2_axi_rd_bus_slv.axi_rresp  }),
-     .s_axi_rlast(	{mstr1_axi_rd_bus_slv.axi_rlast,	xbarOut_axi_rd_bus.axi_rlast      }),//,mstr2_axi_rd_bus_slv.axi_rlast  }),
-     .s_axi_ruser(	{mstr1_axi_rd_bus_slv.axi_ruser,	xbarOut_axi_rd_bus.axi_ruser      }),//,mstr2_axi_rd_bus_slv.axi_ruser  }),
-     .s_axi_rvalid(	{mstr1_axi_rd_bus_slv.axi_rvalid,	xbarOut_axi_rd_bus.axi_rvalid     }),//,mstr2_axi_rd_bus_slv.axi_rvalid }),
-     .s_axi_rready(	{mstr1_axi_rd_bus_slv.axi_rready,	xbarOut_axi_rd_bus.axi_rready     }),//,mstr2_axi_rd_bus_slv.axi_rready }),
+     .s_axi_rid(	{mstr1_axi_rd_bus_slv.axi_rid,		xbarOut_axi_rd_bus.axi_rid        }),
+     .s_axi_rdata(	{mstr1_axi_rd_bus_slv.axi_rdata,	xbarOut_axi_rd_bus.axi_rdata      }),
+     .s_axi_rresp(	{mstr1_axi_rd_bus_slv.axi_rresp,	xbarOut_axi_rd_bus.axi_rresp      }),
+     .s_axi_rlast(	{mstr1_axi_rd_bus_slv.axi_rlast,	xbarOut_axi_rd_bus.axi_rlast      }),
+     .s_axi_ruser(	{mstr1_axi_rd_bus_slv.axi_ruser,	xbarOut_axi_rd_bus.axi_ruser      }),
+     .s_axi_rvalid(	{mstr1_axi_rd_bus_slv.axi_rvalid,	xbarOut_axi_rd_bus.axi_rvalid     }),
+     .s_axi_rready(	{mstr1_axi_rd_bus_slv.axi_rready,	xbarOut_axi_rd_bus.axi_rready     }),
 
      .m_axi_awid(		xbarOut2_axi_wr_bus.axi_awid),
      .m_axi_awaddr(		xbarOut2_axi_wr_bus.axi_awaddr),
@@ -365,37 +218,7 @@ axi_crossbar #(.DDR_START_ADDR(DDR_START_ADDR), .S_COUNT(2)) u_hawk_axi_crossbar
      .m_axi_rvalid(		xbarOut2_axi_rd_bus.axi_rvalid),
      .m_axi_rready(		xbarOut2_axi_rd_bus.axi_rready)
 );
-`endif
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-localparam DOWN_RATIO = `HACD_AXI4_DATA_WIDTH/`HACD_MC_AXI4_DATA_WIDTH;
-    logic [DOWN_RATIO-1:0][`HACD_MC_AXI4_DATA_WIDTH-1:0]   axi_slave_w_data_i;
-    logic [DOWN_RATIO-1:0][`HACD_MC_AXI4_STRB_WIDTH-1:0]   axi_slave_w_strb_i;
-genvar i;
-generate
-for(i=0;i<DOWN_RATIO;i=i+1) begin
-assign axi_slave_w_data_i[i] =  xbarOut2_axi_wr_bus.axi_wdata[(`HACD_MC_AXI4_DATA_WIDTH*(i+1)) -1 :`HACD_MC_AXI4_DATA_WIDTH*i];
-assign axi_slave_w_strb_i[i] = xbarOut2_axi_wr_bus.axi_wstrb[(`HACD_MC_AXI4_STRB_WIDTH*(i+1)) -1 :`HACD_MC_AXI4_STRB_WIDTH*i];
-end
-endgenerate
 
 axi_size_conv_DOWNSIZE # 
 (
@@ -448,8 +271,8 @@ axi_size_conv_DOWNSIZE #
 
     // WRITE DATA CHANNEL
     .axi_slave_w_valid_i(		xbarOut2_axi_wr_bus.axi_wvalid),
-    .axi_slave_w_data_i(        axi_slave_w_data_i),
-    .axi_slave_w_strb_i(        axi_slave_w_strb_i),
+    .axi_slave_w_data_i(        xbarOut2_axi_wr_bus.axi_wdata),
+    .axi_slave_w_strb_i(        xbarOut2_axi_wr_bus.axi_wstrb),
     .axi_slave_w_user_i(		xbarOut2_axi_wr_bus.axi_wuser),
     .axi_slave_w_last_i(		xbarOut2_axi_wr_bus.axi_wlast),
     .axi_slave_w_ready_o(		xbarOut2_axi_wr_bus.axi_wready),

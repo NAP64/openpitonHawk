@@ -4,96 +4,39 @@
 
 #include <stdio.h>
 
+#define uint64_t unsigned long
+
 #define HAWK_REG_BASE  0xfff5100000ULL
-#define LOW_WATERMARK  0x4
-
-//For Interrupt Testing
-//PLIC - Not needed
-#define PLIC_BASE    0xfff1100000ULL
-
-#define IRQ_ENABLE_TARGET1 0x0002000 //Per IrQ 1 bit from lsb = 'b100 for hawk
-#define IRQ_ENABLE_TARGET2 0x0002080 //
-
-#define IRQ_PRIORITY_SRC0 0x0000000
-#define IRQ_PRIORITY_SRC1 0x0000004
-#define IRQ_PRIORITY_SRC2 0x0000008 //for hawk -set it to 3'b111
-#define IRQ_PRIORITY_SRC3 0x000000C //for hawk -set it to 3'b111
-//
-
+#define LST_ENTRY_CNT 16
+uint64_t array1[512*LST_ENTRY_CNT];
 
 int main(int argc, char ** argv) {
-  uint64_t *addr;
-  volatile uint32_t val;
+    uint64_t *addr;
 
-  printf("\nHello World ..!\n");
-  printf("Performing HAWK Test ..\n");
-  for (int k = 0; k < 1; k++) {
-    // assemble number and print
-    printf("Hello world, I am HART %d! Counting (%d of 32)...\n", argv[0][0], k);
-  }
-
-  //Assert Interrupt
-  addr = (uint64_t*)(HAWK_REG_BASE+LOW_WATERMARK);
-  printf("HAWK LOW WATER MARK : Default Value = 0x%016x\n",*addr);
-  printf("HAWK LOW WATER MARK : Writing Register with 0x13572468\n");
-  *addr = (uint32_t) 0x13572468;
-  printf("HAWK LOW WATER MARK : Read back Value = 0x%016x\n",*addr);
-
-/* 
-  addr = (uint32_t*)(PLIC_BASE+IRQ_ENABLE_TARGET1);
-  val = *addr;
-  printf("PLIC TARGET1 IRQ Enable before 0x%llx, data = 0x%x\n",addr,val);
-  val = val | 0x8;
-  *addr=val; 
-  printf("PLIC TARGET1 IRQ Enable after 0x%llx, data = 0x%x\n",addr,*addr);
-
-  addr = (uint32_t*)(PLIC_BASE+IRQ_PRIORITY_SRC3);
-  val = *addr;
-  printf("PLIC PRIORITY SRC3 before 0x%llx, data = 0x%x\n",addr,val);
-  val = val | 0x7;
-  *addr=val; 
-  printf("PLIC PRIORITY SRC3 after 0x%llx, data = 0x%x\n",addr,*addr);
-
-  //Assert Interrupt
-  addr = (uint64_t*)(HAWK_REG_BASE);
-  printf("HACD: Cntrl result = 0x%016x\n",*addr);
-  printf("Writing Control Register.\n");
-  *addr = (uint32_t) 0x1;
-  printf("HACD: Cntrl result = 0x%016x\n",*addr);
- 
-
-  addr = (uint32_t*)(PLIC_BASE+IRQ_ENABLE_TARGET2);
-  val = *addr;
-  printf("PLIC TARGET2 IRQ Enable before 0x%llx, data = 0x%x\n",addr,val);
-  val = val | 0xF;
-  *addr=val; 
-  printf("PLIC TARGET2 IRQ Enable after 0x%llx, data = 0x%x\n",addr,*addr);
-
-
-  addr = (uint32_t*)(PLIC_BASE+IRQ_PRIORITY_SRC0);
-  val = *addr;
-  printf("PLIC PRIORITY SRC0 before 0x%llx, data = 0x%x\n",addr,val);
-  val = val | 0x7;
-  *addr=val; 
-  printf("PLIC PRIORITY SRC0 after 0x%llx, data = 0x%x\n",addr,*addr);
-
-  addr = (uint32_t*)(PLIC_BASE+IRQ_PRIORITY_SRC1);
-  val = *addr;
-  printf("PLIC PRIORITY SRC1 before 0x%llx, data = 0x%x\n",addr,val);
-  val = val | 0x7;
-  *addr=val; 
-  printf("PLIC PRIORITY SRC1 after 0x%llx, data = 0x%x\n",addr,*addr);
-
-  addr = (uint32_t*)(PLIC_BASE+IRQ_PRIORITY_SRC2);
-  val = *addr;
-  printf("PLIC PRIORITY SRC2 before 0x%llx, data = 0x%x\n",addr,val);
-  val = val | 0x7;
-  *addr=val; 
-  printf("PLIC PRIORITY SRC2 after 0x%llx, data = 0x%x\n",addr,*addr);
- */
-    
-  printf("HAWK Test Done!..\n");
-
-  return 0;
+    printf("\nHello World ..!\n");
+    printf("Performing HAWK Test ..\n");
+    for (int k = 0; k < 1; k++) {
+      printf("Hello world, I am HART %d! Counting (%d of 32)...\n", argv[0][0], k);
+    }
+    for(int j=0;j<LST_ENTRY_CNT-1;j++) {
+      printf("writing %d! \n", j);
+      for (int i = 0; i < 64; i++)
+        if (i<16)
+          array1[j * 512 + i] = ((uint64_t) (j*16+i+1));//* 0x0101010101010101;
+        else
+          array1[j * 512 + i] = (uint64_t) 0x0;
+    }
+    printf("Accessing Compressed Page\n");
+    printf("HACD: Accesing Memory on 0x%llx, data = 0x%llx\n",2,array1[2*512]);
+    //Assert Interrupt
+    addr = (uint64_t*)HAWK_REG_BASE;
+    printf("HAWK LOW WATER MARK : Default Value = 0x%016x\n",*addr);
+    printf("HAWK LOW WATER MARK : Writing Register with 0x13572468\n");
+    *addr = 0x0100000000000004;
+    printf("HACD: Accesing Memory on 0x%llx, data = 0x%llx\n",3,array1[3*512]);
+    printf("HAWK LOW WATER MARK : Read back Value = 0x%016x\n",*addr);
+    printf("HACD: Accesing Memory on 0x%llx, data = 0x%llx\n",3,array1[4*512]);
+    printf("HAWK Test Done!..\n");
+    return 0;
 }
 

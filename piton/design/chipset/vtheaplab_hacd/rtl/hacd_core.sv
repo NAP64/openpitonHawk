@@ -32,10 +32,10 @@ module hacd_core (
     HACD_MC_AXI_WR_BUS.mstr mc_axi_wr_bus,  
     HACD_MC_AXI_RD_BUS.mstr mc_axi_rd_bus,
 
-	input wire hawk_cmd_ready,
-	output logic hawk_cmd_run,
-    input wire use_axi,
-    output wire dump_mem 
+	 input wire hawk_cmd_ready,
+	 output logic hawk_cmd_run,
+    output wire dump_mem,
+    output wire [3:0] cu_state
     );
 
    //TOL Head tail broadcasted
@@ -517,8 +517,7 @@ hawk_comdecomp u_hawk_comdecomp(
 
 	//Towards memory controller   
    	.out_axi_wr_bus(mc_axi_wr_bus),
-   	.out_axi_rd_bus(mc_axi_rd_bus),
-    .use_axi
+   	.out_axi_rd_bus(mc_axi_rd_bus)
    );
 
 

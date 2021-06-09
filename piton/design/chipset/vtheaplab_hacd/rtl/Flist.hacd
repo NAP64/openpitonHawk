@@ -32,3 +32,4 @@ axi/axi_register_wr.v
 axi/axi_register_rd.v
 axi/axi_size_conv_DOWNSIZE.sv
 hawk_struct_rw.sv
+hawk_arbiter.sv
